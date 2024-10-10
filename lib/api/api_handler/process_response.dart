@@ -11,7 +11,7 @@ dynamic processResponse(
   String url,
 ) {
   switch (response.statusCode) {
-    case 200:
+    case 200 || 201:
       var responseJson = response.body;
       return responseJson;
 

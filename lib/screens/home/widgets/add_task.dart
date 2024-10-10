@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:to_do_app/constant/app_constant.dart';
 import 'package:to_do_app/screens/home/home_notifier.dart';
 import 'package:to_do_app/utils/spacing_extension.dart';
 
@@ -10,17 +11,24 @@ import '../../../model/task_model.dart';
 import '../../../utils/get_size.dart';
 
 class AddTask extends StatelessWidget {
-  AddTask({super.key});
+  final Task? task;
+  AddTask({this.task, super.key});
 
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController assigneeIdController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    if(task != null) {
+      titleController.text = task!.title;
+      descriptionController.text = task!.description;
+      assigneeIdController.text = task!.assigneeId;
+    }
     return Consumer<HomeNotifier>(
       builder: (context, notifier, child) {
         return SizedBox(
-          height: getHeight(context) * 0.8,
+          height: getHeight(context) * 0.9,
           width: getWidth(context),
           child: Scaffold(
             body: Padding(
@@ -69,6 +77,22 @@ class AddTask extends StatelessWidget {
                       hintText: 'Description',
                     ),
                   ),
+                  (20.0).height,
+                  const Text(
+                    "Assignee Id (Optional)",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  (6.0).height,
+                  TextFormField(
+                    controller: assigneeIdController,
+                    decoration:
+                    textFormFieldInputDecoration(context: context).copyWith(
+                      hintText: 'Assignee Id',
+                    ),
+                  ),
                   (getHeight(context) * 0.07).height,
                   Center(
                     child: CustomButton(
@@ -95,16 +119,24 @@ class AddTask extends StatelessWidget {
                           return;
                         }
 
-                        Task task = Task(
-                          id: '',
+                        Task addTask = Task(
+                          id: task == null ? '' : task!.id,
                           title: titleController.text,
                           description: descriptionController.text,
                           isCompleted: false,
+                          creatorId: AppConstant.uid,
+                          assigneeId: assigneeIdController.text.trim()
                         );
 
-                        await notifier.addTask(task).whenComplete(() {
-                          Navigator.pop(context);
-                        });
+                        if(task == null) {
+                          await notifier.addTask(addTask).whenComplete(() {
+                            Navigator.pop(context);
+                          });
+                        } else {
+                          await notifier.editTask(addTask).whenComplete(() {
+                            Navigator.pop(context);
+                          });
+                        }
                       },
                       widget: buttonText(
                         text: "Save",
